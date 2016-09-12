@@ -1,0 +1,291 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Documentation</title>
+<style type="text/css"> 
+	@import url(scripts/styles.css); 
+	.pcode {
+		background-color:lightgrey;
+		margin:20px;
+	}
+	.option {
+		font-size: 20px;
+	}
+	pre {
+		padding: 10px;
+		background-color: White;
+		color: #222;
+		line-height: 19px;
+		border: 1px solid #C6C9CB;
+		font-size: 17px;
+		overflow: auto;
+		margin: 24px 0 24px 0;
+		-webkit-box-shadow: 1px 1px 1px #d8d8d8;
+		-moz-box-shadow: 1px 1px 1px #d8d8d8;
+	}
+	
+	tt {
+		background-color: #ecf0f3;
+		color: #222;
+		padding: 1px 2px;
+		font-size: 17px;
+		font-family: monospace;
+	}
+	tr.border_bottom td {
+		border-bottom:1pt solid black;
+	}
+</style>
+</head>
+
+<body>
+<div id="prereq-div">
+  <noscript>
+  	&lt;p class="prereq"&gt;Javascript required to use this web app.&lt;/p&gt;
+  </noscript>
+</div>
+<div id="container">
+	<table width="100%" height="100px" frame="none" border="0" cellpadding="0">
+    	<tr>
+        	<td width="20%" align="center" valign="top"><img src="images/Mdanderson_logo.png" alt="" width="180px" height="98px" /></td>
+    		<td width="80%" align="center" valign="top"><img src="images/LNCINOFF_logo.png" alt="" width="386px" height="98px" /></td>
+        </tr>
+    </table>
+    <div id="mainmenu">
+        <ul align="center">
+        	<li><a href="index.html">HOME</a></li>
+            <li><a href="browse.html">Browse</a></li>
+            <li><a class="current" href="doc.html">Documentation</a></li>
+            <li><a href="contact.html">Contact</a></li>
+         </ul>
+     </div>
+     <div id="content">
+      <h2>LNCIN-OFF: <u>Lnc</u>RNA Function <u>In</u>ference Based on RNAi <u>Off</u>-target Effect.</h2>
+      <hr>
+        <ul>
+            <li>lncin is a Python based package aims in lncRNA function inference using large-scale RNAi screening data.</li>
+            <li>lncin input:  si/shRNA seed sequences as well as the phenotype score in the screen.</li>
+            <li>lncin output: seed rank enrichment scores and <i>p</i> values. </li>
+            <li>All files are copyrighted, but license is hereby granted for personal, academic and non-profit use. Commercial users should contact <a class="email" href="mailto:YChen26@mdanderson.org">Dr. Yiwen Chen</a> for details.</li>
+        </ul>
+      <h2>Prerequisites</h2>
+      <hr>
+        <ul>
+            <li> Python 2.6 or 2.7</li>
+            <li> argparse if Python 2.6 is used. </li>
+            <li> ngslib 1.1.14+</li>
+            <li> scipy </li>
+            <li> pandas </li>
+        </ul>
+        
+      <h2>Installation</h2>
+      <hr>
+      <strong>Installation from PyPI:</strong>
+      <pre class="pcode"><code>&gt; easy_install --prefix=$HOME/local lncin</code></pre>
+        
+        <strong>Installation from source code:</strong>
+        
+      <pre class="pcode"><code>&gt; easy_install --editable  --build-directory . lncin
+    &gt; cd lncin
+    &gt; python setup.py build
+    &gt; python setup.py install --prefix=$HOME/local</code></pre>
+        
+      <h2 >Scripts</h2>
+      <hr>
+      <h3>Contents</h3>
+      <table id="toc" class="toc"><tbody><tr><td>
+      <ul>
+        <li><a href="#DumpTargetRNAs" class="contents">DumpTargetRNAs.py</a></li>
+        <li><a href="#EVDPermutation" class="contents">EVDPermutation.py</a></li>
+        <li><a href="#RankGenesByOrderedsiRNA" class="contents">RankGenesByOrderedsiRNA.py</a></li>
+      </ul>
+    </td></tr></tbody></table>
+      <h3 id="DumpTargetRNAs">DumpTargetRNAs.py</h3>
+      <p>Create seed index file for annotated transcript sequences in <a href="http://blast.ncbi.nlm.nih.gov/blastcgihelp.shtml">Fasta</a> format. The matrix is dumped to a .gz file for fast calculation of enrichment scores.</p>
+      <pre class="pcode"><code>&gt; DumpTargetRNAs.py -i target.fa -d dumpfile [-t {UTR3,lncRNA,mixed}]</code></pre>
+      <dl class="docutils">
+        <dt>Options:</dt>
+        <dd><table  width="100%" frame="void" rules="none">
+        <colgroup><col class="option">
+        <col class="description"></colgroup>
+        <tbody valign="top">
+        <tr class="border_bottom">
+          <td class="option-group" colspan="2">
+        <kbd><span class="option">-h, --help</span></kbd></td>
+        </tr>
+        
+        <tr class="border_bottom"><td width="20%"></td>
+        <td>show this help message and exit.</td></tr>
+        
+        <tr class="border_bottom">
+          <td class="option-group" colspan="2">
+        <kbd><span class="option">-i <var>transcripts.fa</var></span></kbd></td>
+        </tr>
+        <tr class="border_bottom"><td>&nbsp;</td><td>miRNA target file in <a href="http://blast.ncbi.nlm.nih.gov/blastcgihelp.shtml">Fasta</a> format.</td></tr>
+        <tr class="border_bottom">
+          <td class="option-group" colspan="2">
+        <kbd><span class="option">-t <var>{UTR3,lncRNA,mixed} [tobe: customized cutoff]</var></span></kbd></td>
+        </tr>
+        <tr class="border_bottom"><td>&nbsp;</td><td>miRNA target type. This is used to filter out short target sequences. 3' UTR &gt;= 50nt. lncRNA &gt;= 200nt. If 'mixed' is selected (make sure all lncRNAs are no shorter than 200nt), sequences &lt;50nt will be ignored. [default='<var>UTR3</var>']</td></tr>
+    <tr class="border_bottom">
+      <td class="option-group" colspan="2">
+      <kbd><span class="option">-d <var>dumpfile</var></span></kbd></td>
+    </tr>
+        <tr class="border_bottom"><td>&nbsp;</td>
+        <td>Dumped gene seed index file.</td></tr>
+        </tbody>
+        </table>
+        </dd>
+        </dl>
+    
+      <h3 id="EVDPermutation">EVDPermutation.py</h3>
+      <p>Do permutation on si/shRNAs to estimate the probability distribution of Escores.</p>
+      <pre class="pcode"><code>&gt; EVDPermutation.py -i siRNA.fa -s lncRNA.dump.gz -o permutation.gz [-m method] [-a 0.05] [-p 1] [-g 1000] [-n 10000] </code></pre>
+      <dl class="docutils">
+        <dt>Options:</dt>
+        <dd>
+          <table  width="100%" frame="void" rules="none">
+            <colgroup>
+              <col class="option">
+              <col class="description">
+            </colgroup>
+            <tbody valign="top">
+              <tr class="border_bottom">
+                <td class="option-group" colspan="2"><kbd><span class="option">-h, --help</span></kbd></td>
+              </tr>
+              <tr class="border_bottom">
+                <td width="20%"></td>
+                <td>show this help message and exit.</td>
+              </tr>
+              <tr class="border_bottom">
+                <td class="option-group" colspan="2"><kbd><span class="option">-i <var>si/shRNAs.fa</var></span></kbd></td>
+              </tr>
+              <tr class="border_bottom">
+                <td></td>
+                <td>si/shRNA sequences in <a href="http://blast.ncbi.nlm.nih.gov/blastcgihelp.shtml">Fasta</a> format.</td>
+              </tr>
+              <tr class="border_bottom">
+                <td class="option-group" colspan="2"><kbd><span class="option">-s <var>seedindex</var></span></kbd></td>
+              </tr>
+              <tr class="border_bottom">
+                <td>&nbsp;</td>
+                <td>Dumped gene seed index file.</td>
+              </tr>
+              <tr class="border_bottom">
+                <td class="option-group" colspan="2"><kbd><span class="option">-t <var>{UTR3,lncRNA,mixed}</var></span></kbd></td>
+              </tr>
+              <tr class="border_bottom">
+                <td>&nbsp;</td>
+                <td>miRNA target type. This is used to filter out short target sequences. 3' UTR &gt;= 50nt. lncRNA &gt;= 200nt. If 'mixed' is selected (make sure all lncRNAs are no shorter than 200nt), sequences &lt;50nt are ignored. [default='<var>UTR3</var>']</td>
+              </tr>
+              <tr class="border_bottom">
+                <td class="option-group" colspan="2"><kbd><span class="option">-a <var>0.05</var></span></kbd></td>
+              </tr>
+              <tr class="border_bottom">
+                <td>&nbsp;</td>
+                <td>alpha value for aRRA method. [Default=0.05].</td>
+              </tr>
+              <tr class="border_bottom">
+                <td class="option-group" colspan="2"><kbd><span class="option">-p <var>1</var></span></kbd></td>
+              </tr>
+              <tr class="border_bottom">
+                <td>&nbsp;</td>
+                <td>Number of CPUs used for permutation. [Default=1]</td>
+              </tr>
+              <tr class="border_bottom">
+                <td class="option-group" colspan="2"><kbd><span class="option">-g <var>1000</var></span></kbd></td>
+              </tr>
+              <tr class="border_bottom">
+                <td>&nbsp;</td>
+                <td>Number of genes used for permutation. Recommend: 500~1000. [Default=1000]</td>
+              </tr>
+              <tr class="border_bottom">
+                <td class="option-group" colspan="2"><kbd><span class="option">-n <var>1000</var></span></kbd></td>
+              </tr>
+              <tr class="border_bottom">
+                <td>&nbsp;</td>
+                <td>Number of performed permutations. [Default=10000]</td>
+              </tr>
+              <tr class="border_bottom">
+                <td class="option-group" colspan="2"><kbd><span class="option">-o <var>permutation.gz</var></span></kbd></td>
+              </tr>
+              <tr class="border_bottom">
+                <td>&nbsp;</td>
+                <td>Permutation resulted in a gzipped model file.</td>
+              </tr>
+            </tbody>
+          </table>
+        </dd>
+      </dl>
+      <h2></h2>
+      <h3 id="RankGenesByOrderedsiRNA">RankGenesByOrderedsiRNA.py</h3>
+      <p>Calculate gene Rank Enrichment Scores (RES) based on ordered si/shRNAs.</p>
+      <pre class="pcode"><code>&gt; RankGenesByOrderedsiRNA.py -i siRNA.fa -s genes.dump.gz -p permutation.gz -o rankscore.rst </code></pre>
+      <dl class="docutils">
+        <dt>Options:</dt>
+        <dd>
+          <table  width="100%" frame="void" rules="none">
+            <colgroup>
+              <col class="option">
+              <col class="description">
+            </colgroup>
+            <tbody valign="top">
+              <tr class="border_bottom">
+                <td class="option-group" colspan="2"><kbd><span class="option">-h, --help</span></kbd></td>
+              </tr>
+              <tr class="border_bottom">
+                <td width="20%"></td>
+                <td>show this help message and exit.</td>
+              </tr>
+              <tr class="border_bottom">
+                <td class="option-group" colspan="2"><kbd><span class="option">-i <var>ranked_si/shRNAs.fa</var></span></kbd></td>
+              </tr>
+              <tr class="border_bottom">
+                <td></td>
+                <td>si/shRNA sequences in <a href="http://blast.ncbi.nlm.nih.gov/blastcgihelp.shtml">Fasta</a> format, and ranked by  phenotype scores.</td>
+              </tr>
+              <tr class="border_bottom">
+                <td class="option-group" colspan="2"><kbd><span class="option">-s <var>seedindex</var></span></kbd></td>
+              </tr>
+              <tr class="border_bottom">
+                <td>&nbsp;</td>
+                <td>Dumped gene seed index file.</td>
+              </tr>
+              <tr class="border_bottom">
+                <td class="option-group" colspan="2"><kbd><span class="option">-a <var>0.05</var></span></kbd></td>
+              </tr>
+              <tr class="border_bottom">
+                <td>&nbsp;</td>
+                <td>alpha value for aRRA method. Should be consistent with the alpha set in <a href="#EVDPermutation">EVDPermutation.py</a>. [Default=0.05].</td>
+              </tr>
+              <tr class="border_bottom">
+                <td class="option-group" colspan="2"><kbd><span class="option">-p <var>permutation.gz</var></span></kbd></td>
+              </tr>
+              <tr class="border_bottom">
+                <td>&nbsp;</td>
+                <td>Permutation model file generated by <a href="#EVDPermutation">EVDPermutation.py</a>.</td>
+              </tr>
+              <tr class="border_bottom">
+                <td class="option-group" colspan="2"><kbd><span class="option">-o <var>rankscore.rst</var></span></kbd></td>
+              </tr>
+              <tr class="border_bottom">
+                <td>&nbsp;</td>
+                <td>Calculated Rank Enrichment Statistics for genes.</td>
+              </tr>
+            </tbody>
+          </table>
+        </dd>
+      </dl>
+      <h2>Citation</h2>
+      <hr>
+        <p>Yunfei Wang, Dandan He, Ming Sun, Jiakai Hou and <a class="email" href="mailto:YChen26@mdanderson.org">Yiwen Chen</a>. (2016)
+      <strong>LNCIN-OFF: Potential Off-target Effects for lncRNAs using Large-scale RNAi Screening Data.</strong> XXX XXXX. doi:XXXXXXXXXXXXXXXXX (<a href="http://http://www.ncbi.nlm.nih.gov/pubmed?pid=xxxx">PubMed</a>)</p>      
+        <div>
+          <footer align="center">
+            <br><br>&copy;2016 The University of Texas MD Anderson Cancer Center
+          </footer>
+        </div>
+    </div>
+</div>
+</body>
+</html>

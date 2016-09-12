@@ -1,0 +1,162 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Browse</title>
+<style type="text/css"> 
+	@import url(scripts/styles.css); 
+	/* submission forms */
+	@import url(scripts/bootstrap.custom.css);
+	/* used for data table */
+	@import "https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css";
+	@import "https://cdn.datatables.net/1.10.12/css/dataTables.jqueryui.min.css";
+</style>
+<!-- data table -->
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.12/js/dataTables.jqueryui.min.js"></script>
+
+
+<!-- end data table -->
+
+</head>
+
+<body>
+<div id="prereq-div">
+  <noscript>
+  	&lt;p class="prereq"&gt;Javascript required to use this web app.&lt;/p&gt;
+  </noscript>
+</div>
+<div id="container">
+	<table width="100%" height="100px" frame="none" border="0" cellpadding="0">
+    	<tr>
+        	<td width="20%" align="center" valign="top"><img src="images/Mdanderson_logo.png" alt="" width="180px" height="98px" /></td>
+    		<td width="80%" align="center" valign="top"><img src="images/LNCINOFF_logo.png" alt="" width="386px" height="98px" /></td>
+        </tr>
+    </table>
+    <div id="mainmenu">
+        <ul align="center">
+        	<li><a href="index.html">HOME</a></li>
+            <li><a class="current" href="browse.html">Browse</a></li>
+            <li><a href="doc.html">Documentation</a></li>
+            <li><a href="contact.html">Contact</a></li>
+         </ul>
+     </div>
+     <div id="content">
+
+     <div id="query-form-div">
+     	<div class="bs-callout bs-callout-green ">
+        	<div class="ui-widget">
+              <form id="submitform">
+              	<label for="gsymbol">HGNC Gene Symbol: </label>
+              	<input id="gsymbol" value="">
+              	<button class="submit" id="gsubmit" type="button">Submit</button>
+                <button class="submit" id="greset" type="button">Reset</button>
+              </form>
+             </div>
+        </div>
+    </div>
+    <div id="errinfo" class="bs-callout bs-callout-red" ><p id="errmsg"></p></div>
+    <div id="result" style="font-size:12px; display:block"><table id="datatable" class="display" cellspacing="0" width="100%"></table></div>   
+    <script type="text/javascript">
+	var dataSet = [];
+	var errstring = "";
+	$(document).ready(function() {
+		"use strict";
+		$("#errinfo").hide();
+		$("#gsubmit").click(function(){
+			var gname = document.getElementById("gsymbol").value.toUpperCase();			
+			// Do some validation test here
+
+			if (gname == "") {
+				document.getElementById("errmsg").innerHTML = "ERROR: gene symbol is not provided!";				
+				$("#errinfo").show();
+				return;
+			}
+			if(! gname.match(/^[\-\.0-9A-Z]+$/)) { 
+				document.getElementById("errmsg").innerHTML = "ERROR: gene symbol contains invalid characters!";
+				$("#errinfo").show();
+				document.getElementById("gsymbol").value = "";
+				return;
+			}		
+			$.ajax({
+				type: "GET",
+				url: "http://127.0.0.1:/"+gname+".tsv",
+				dataType: "text",
+				beforeSend: function (request) {
+					request.setRequestHeader("Authorization", "Negotiate");
+				},
+				async: true,
+				success: function(data) {
+					processData(data);
+					$('#datatable').DataTable( {
+						data: dataSet,
+						searching: false,
+						destroy: true,
+						// searching: false;
+						columns: [
+							{ title: "Transcript ID" },
+							{ title: "Gene Symbol" },
+							{ title: "Is_coding" },
+							{ title: "Length" },
+							{ title: "Seed count" },
+							{ title: "A" },
+							{ title: "B" },
+							{ title: "C" },
+							{ title: "D" },
+							{ title: "Escore" },
+							{ title: "p value" },
+							{ title: "qvalue" },
+							{ title: "GESS p value" },
+							{ title: "GESS qvalue" }
+							]
+						} );
+					},
+				error: function (xhr, textStatus, errorMessage) {
+					document.getElementById("errmsg").innerHTML = "ERROR: gene symbol: "+gname+" is not valid!";
+					$("#errinfo").show(); 
+				}
+			 });
+		});
+		$("#greset").click(function(){
+			document.getElementById("gsymbol").value = "";
+			$("#result").hide();
+			$("#errinfo").hide();
+		});
+	});
+	
+	function processData(allText) {
+		var record_num = 14;  // or however many elements there are in each row
+		if (allText.length<10) {		
+			document.getElementById("errmsg").innerHTML = "WARNING: no significant result.";
+			$("#errinfo").show();
+			$("#result").hide();
+			return;
+		}
+		var allTextLines = allText.split(/\r\n/);
+		var entries;
+		var items;
+		dataSet = []; // empty dataSet
+		for (i=0;i<allTextLines.length;i++){
+			entries = allTextLines[i].split('\t');
+			items = entries.splice(0,record_num);
+			dataSet.push([]);
+			for(j=0;j<record_num;j++){
+				dataSet[i].push(items[j]);
+			}
+		}
+		$("#errinfo").hide();
+		$("#result").show();	
+	};
+	</script> 	
+    <div>
+   	  <footer align="center">
+    	<br><br>&copy;2016 The University of Texas MD Anderson Cancer Center
+      </footer>
+    </div>
+  </div>
+</div>
+</body>
+</html>
